@@ -200,11 +200,11 @@ class SaveMetricsCallback(TrainerCallback):
         self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
-    def on_epoch_end(self, args, state, control, logs=None, **kwargs):
+    def on_log(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
-        print(f'state:${state}')
-        perplexity = math.exp(logs["train_loss"])
-        print(f'Epoch: ${state.epoch}, Perplexity: ${perplexity} loss:${logs["train_loss"]}')
+        # print(f'state:${state}')
+        # perplexity = math.exp(logs["train_loss"])
+        # print(f'Epoch: ${state.epoch}, Perplexity: ${perplexity} loss:${logs["train_loss"]}')
         # 在每个epoch结束后，logs会包含loss和其他可能的指标
         # if state.epoch is not None:
             # self.metrics_dataframe.append((state.epoch, logs))
