@@ -221,8 +221,8 @@ class SaveMetricsCallback(TrainerCallback):
         # self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
         #
         # fig, axs = plt.subplots(2)
-        # print("输出指标")
-        # print(self.metrics_dataframe)
+        print("输出指标")
+        print(self.metrics_dataframe)
         # # Plot accuracy
         # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
         # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
