@@ -26,9 +26,8 @@ deepspeed run_mlm.py \
     --dataset_name wikitext \
     --dataset_config_name wikitext-2-raw-v1 \
 --num_train_epochs 2 \
---per_device_train_batch_size 32 \
---per_device_eval_batch_size 32 \
 --do_train \
+--do_eval \
 --output_dir ./test-bert-zero2-multigpu \
 --output_figure /tmp/test-mlm-deepspeed \
 --out_excel deepspeedMlmMatrix \
