@@ -190,6 +190,7 @@ class SaveMetricsCallback(TrainerCallback):
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
+        print("触发回调函数")
         if logs:
             self.metrics_dataframe = self.metrics_dataframe.append(logs, ignore_index=True)
             self.metrics_dataframe.to_excel(self.excel_filename)
