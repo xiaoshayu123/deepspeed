@@ -197,9 +197,12 @@ class SaveMetricsCallback(TrainerCallback):
         self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
-    def on_epoch_end(self, args, state, control, logs=None, **kwargs):
+    def on_epoch_end(self, args, state, control, model=None, **kwargs):
+        logs = kwargs['logs']
+        epoch = state.epoch
         # 输出所有的参数
         print(f'log:${logs}')
+        print(f'args:${kwargs}')
         if logs:
             self.metrics_dataframe = self.metrics_dataframe.append(logs, ignore_index=True)
 
