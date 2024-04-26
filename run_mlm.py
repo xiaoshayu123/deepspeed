@@ -24,6 +24,7 @@ https://huggingface.co/models?filter=masked-lm
 import logging
 import math
 import os
+import shutil
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -186,7 +187,7 @@ class SaveMetricsCallback(TrainerCallback):
         self.metrics_dataframe = pd.DataFrame()
         # 检查目录是否存在，如果存在就删除
         if os.path.exists(args.output_figure):
-            os.rmdir(args.output_figure)
+            shutil.rmtree(args.output_figure)
 
         # 重新创建同名目录
         os.makedirs(args.output_figure)
