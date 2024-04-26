@@ -58,11 +58,6 @@ logger = logging.getLogger(__name__)
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_MASKED_LM_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
 
-def compute_metrics(eval_pred):
-    predictions, labels = eval_pred
-    # Compute accuracy from predictions and labels
-    accuracy = accuracy_score(labels, np.argmax(predictions, axis=-1))
-    return {"accuracy": accuracy}
 
 @dataclass
 class ModelArguments:
@@ -208,18 +203,9 @@ class SaveMetricsCallback(TrainerCallback):
     def on_log(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
         # 在每个epoch结束后，logs会包含loss和其他可能的指标
-        if state.epoch is not None:
-            self.metrics_dataframe.append((state.epoch, logs))
+        # if state.epoch is not None:
+            # self.metrics_dataframe.append((state.epoch, logs))
 
-    def on_epoch_end(self, args, state, control, model=None, logs=None, **kwargs):
-        # logs = kwargs['logs']
-        if logs:
-            epoch = state.epoch
-            # can access metrics as logs["loss"], logs["accuracy"] etc.
-            loss = logs.get('loss')
-            accuracy = logs.get('accuracy')
-            # Save or print the metrics as needed
-            print(f'Epoch: {epoch}, Loss: {loss}, Accuracy: {accuracy}')
 
     def on_train_end(self, args, state, control, **kwargs):
         print("训练结束")
@@ -231,8 +217,8 @@ class SaveMetricsCallback(TrainerCallback):
         # self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
         #
         # fig, axs = plt.subplots(2)
-        print("输出指标")
-        print(self.metrics_dataframe)
+        # print("输出指标")
+        # print(self.metrics_dataframe)
         # # Plot accuracy
         # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
         # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
@@ -525,7 +511,6 @@ def main():
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        compute_metrics=compute_metrics,
         callbacks=[SaveMetricsCallback(data_args,data_args.out_excel, data_args.out_pic, data_args.valid_filename,
                                        data_args.test_filename)]
     )
