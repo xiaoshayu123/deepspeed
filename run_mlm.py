@@ -184,6 +184,12 @@ class DataTrainingArguments:
 class SaveMetricsCallback(TrainerCallback):
     def __init__(self, args, excel_filename, plot_filename, valid_filename, test_filename):
         self.metrics_dataframe = pd.DataFrame()
+        # 检查目录是否存在，如果存在就删除
+        if os.path.exists(args.output_figure):
+            os.rmdir(args.output_figure)
+
+        # 重新创建同名目录
+        os.makedirs(args.output_figure)
         self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
         self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
         self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
