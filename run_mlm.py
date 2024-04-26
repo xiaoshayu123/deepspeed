@@ -200,7 +200,7 @@ class SaveMetricsCallback(TrainerCallback):
         print(f'valid文件保存地址：${self.valid_filename}')
         print(f'test文件保存地址：${self.test_filename}')
 
-        self.metrics_dataframe.to_excel(self.excel_filename)
+        self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
 
         fig, axs = plt.subplots(2)
 
