@@ -534,7 +534,7 @@ def main():
         )
         perplexity = math.exp(metrics["train_loss"])
         metrics["train_samples"] = min(max_train_samples, len(train_dataset))
-        perplexity = math.exp(metrics["perplexity"])
+        metrics["perplexity"] = perplexity
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
         trainer.save_state()
