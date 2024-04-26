@@ -198,6 +198,8 @@ class SaveMetricsCallback(TrainerCallback):
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
+        # 输出所有的参数
+        print(f'log:${logs}')
         if logs:
             self.metrics_dataframe = self.metrics_dataframe.append(logs, ignore_index=True)
 
@@ -208,41 +210,41 @@ class SaveMetricsCallback(TrainerCallback):
         print(f'valid文件保存地址：${self.valid_filename}')
         print(f'test文件保存地址：${self.test_filename}')
 
-        self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
-
-        fig, axs = plt.subplots(2)
-        print("输出指标")
-        print(self.metrics_dataframe)
-        # Plot accuracy
-        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
-        axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-               title='Accuracy over epochs')
-        axs[0].grid()
-
-        # Plot loss
-        axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
-        axs[1].set(xlabel='Epoch', ylabel='Loss',
-               title='Loss over epochs')
-        axs[1].grid()
-
-        # Save the figure
-        fig.savefig(self.plot_filename)
-
-        # Plot validation accuracy
-        fig, axs = plt.subplots(2)
-        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['valid_accuracy'])
-        axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-                   title='Validation Accuracy over epochs')
-        axs[0].grid()
-        fig.savefig(self.valid_filename)
-
-        # Plot test accuracy
-        fig, axs = plt.subplots(2)
-        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['test_accuracy'])
-        axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-                   title='Test Accuracy over epochs')
-        axs[0].grid()
-        fig.savefig(self.test_filename)
+        # self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
+        #
+        # fig, axs = plt.subplots(2)
+        # print("输出指标")
+        # print(self.metrics_dataframe)
+        # # Plot accuracy
+        # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
+        # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
+        #        title='Accuracy over epochs')
+        # axs[0].grid()
+        #
+        # # Plot loss
+        # axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
+        # axs[1].set(xlabel='Epoch', ylabel='Loss',
+        #        title='Loss over epochs')
+        # axs[1].grid()
+        #
+        # # Save the figure
+        # fig.savefig(self.plot_filename)
+        #
+        # # Plot validation accuracy
+        # fig, axs = plt.subplots(2)
+        # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['valid_accuracy'])
+        # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
+        #            title='Validation Accuracy over epochs')
+        # axs[0].grid()
+        # fig.savefig(self.valid_filename)
+        #
+        # # Plot test accuracy
+        # fig, axs = plt.subplots(2)
+        # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['test_accuracy'])
+        # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
+        #            title='Test Accuracy over epochs')
+        # axs[0].grid()
+        # fig.savefig(self.test_filename)
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
@@ -519,7 +521,7 @@ def main():
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()  # Saves the tokenizer too for easy upload
         metrics = train_result.metrics
-
+        print(f'测试集参数${metrics}')
         max_train_samples = (
             data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
         )
@@ -534,7 +536,7 @@ def main():
         logger.info("*** Evaluate ***")
 
         metrics = trainer.evaluate()
-
+        print(f'验证集参数${metrics}')
         max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
         metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
         perplexity = math.exp(metrics["eval_loss"])
