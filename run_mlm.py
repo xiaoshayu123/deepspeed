@@ -202,7 +202,7 @@ class SaveMetricsCallback(TrainerCallback):
 
     def on_log(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
-        pprint(f'state:${state}')
+        print(f'state:${state}')
         perplexity = math.exp(logs["train_loss"])
         print(f'Epoch: ${state.epoch}, Perplexity: ${perplexity} loss:${logs["train_loss"]}')
         # 在每个epoch结束后，logs会包含loss和其他可能的指标
