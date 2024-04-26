@@ -201,7 +201,7 @@ class SaveMetricsCallback(TrainerCallback):
         print(f'logEnd:${logs}')
         # 在每个epoch结束后，logs会包含loss和其他可能的指标
         if state.epoch is not None:
-            self.epoch_metrics.append((state.epoch, logs))
+            self.metrics_dataframe.append((state.epoch, logs))
     def on_epoch_end(self, args, state, control, model=None, **kwargs):
         # logs = kwargs['logs']
         # epoch = state.epoch
