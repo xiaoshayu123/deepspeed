@@ -532,8 +532,9 @@ def main():
         max_train_samples = (
             data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
         )
+        perplexity = math.exp(metrics["train_loss"])
         metrics["train_samples"] = min(max_train_samples, len(train_dataset))
-
+        perplexity = math.exp(metrics["perplexity"])
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
         trainer.save_state()
