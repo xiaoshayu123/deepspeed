@@ -200,7 +200,7 @@ class SaveMetricsCallback(TrainerCallback):
         self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
-    def on_log(self, args, state, control, logs=None, **kwargs):
+    def on_epoch_end(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
         print(f'state:${state}')
         perplexity = math.exp(logs["train_loss"])
