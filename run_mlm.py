@@ -488,8 +488,8 @@ def main():
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        callbacks=[SaveMetricsCallback(data_args,data_args.out_excel, data_args.out_pic, data_args.valid_pic,
-                                       data_args.test_pic)]
+        callbacks=[SaveMetricsCallback(data_args,data_args.out_excel, data_args.out_pic, data_args.valid_filename,
+                                       data_args.test_filename)]
     )
 
     # Training
