@@ -191,6 +191,7 @@ class SaveMetricsCallback(TrainerCallback):
 
         # 重新创建同名目录
         os.makedirs(args.output_figure)
+        print(f'保存的目录${args.output_figure}')
         self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
         self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
         self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
