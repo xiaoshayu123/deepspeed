@@ -182,7 +182,7 @@ class DataTrainingArguments:
                 assert extension in ["csv", "json", "txt"], "`validation_file` should be a csv, a json or a txt file."
 
 class SaveMetricsCallback(TrainerCallback):
-    def __init__(self, args,excel_filename, plot_filename,valid_filename, test_filename):
+    def __init__(self, args, excel_filename, plot_filename, valid_filename, test_filename):
         self.metrics_dataframe = pd.DataFrame()
         self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
         self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
@@ -190,43 +190,50 @@ class SaveMetricsCallback(TrainerCallback):
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
-        print("触发回调函数")
         if logs:
             self.metrics_dataframe = self.metrics_dataframe.append(logs, ignore_index=True)
-            self.metrics_dataframe.to_excel(self.excel_filename)
 
-            fig, axs = plt.subplots(2)
+    def on_train_end(self, args, state, control, **kwargs):
+        print("训练结束")
+        print(f'excel文件保存地址：${self.excel_filename}')
+        print(f'plot文件保存地址：${self.plot_filename}')
+        print(f'valid文件保存地址：${self.valid_filename}')
+        print(f'test文件保存地址：${self.test_filename}')
 
-            # Plot accuracy
-            axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
-            axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-                   title='Accuracy over epochs')
-            axs[0].grid()
+        self.metrics_dataframe.to_excel(self.excel_filename)
 
-            # Plot loss
-            axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
-            axs[1].set(xlabel='Epoch', ylabel='Loss',
-                   title='Loss over epochs')
-            axs[1].grid()
+        fig, axs = plt.subplots(2)
 
-            # Save the figure
-            fig.savefig(self.plot_filename)
+        # Plot accuracy
+        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
+        axs[0].set(xlabel='Epoch', ylabel='Accuracy',
+               title='Accuracy over epochs')
+        axs[0].grid()
 
-            # Plot validation accuracy
-            fig, axs = plt.subplots(2)
-            axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['valid_accuracy'])
-            axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-                       title='Validation Accuracy over epochs')
-            axs[0].grid()
-            fig.savefig(self.valid_filename)
+        # Plot loss
+        axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
+        axs[1].set(xlabel='Epoch', ylabel='Loss',
+               title='Loss over epochs')
+        axs[1].grid()
 
-            # Plot test accuracy
-            fig, axs = plt.subplots(2)
-            axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['test_accuracy'])
-            axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-                       title='Test Accuracy over epochs')
-            axs[0].grid()
-            fig.savefig(self.test_filename)
+        # Save the figure
+        fig.savefig(self.plot_filename)
+
+        # Plot validation accuracy
+        fig, axs = plt.subplots(2)
+        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['valid_accuracy'])
+        axs[0].set(xlabel='Epoch', ylabel='Accuracy',
+                   title='Validation Accuracy over epochs')
+        axs[0].grid()
+        fig.savefig(self.valid_filename)
+
+        # Plot test accuracy
+        fig, axs = plt.subplots(2)
+        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['test_accuracy'])
+        axs[0].set(xlabel='Epoch', ylabel='Accuracy',
+                   title='Test Accuracy over epochs')
+        axs[0].grid()
+        fig.savefig(self.test_filename)
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
