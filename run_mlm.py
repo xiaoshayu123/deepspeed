@@ -174,6 +174,7 @@ class DataTrainingArguments:
     valid_filename: Optional[str] = field(default='valLosAndAcc', metadata={"help": "Output valPic Filename"})
     test_filename: Optional[str] = field(default='testLosAndAcc', metadata={"help": "Output testPic Filename"})
     evaluation_strategy = "epoch"
+    save_strategy = "epoch"
     def __post_init__(self):
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
             raise ValueError("Need either a dataset name or a training/validation file.")
