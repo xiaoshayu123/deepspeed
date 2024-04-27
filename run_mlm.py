@@ -202,7 +202,7 @@ class SaveMetricsCallback(TrainerCallback):
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
 
-    def on_log(self, args, state, control, logs=None, **kwargs):
+    def on_evaluate(self, args, state, control, logs=None, **kwargs):
         print(f'epochEndState:{state}')
         print(f'epochEndEpoch {state.epoch} has ended.')
         print(f'epochEndlog_history {state.log_history} has ended.')
