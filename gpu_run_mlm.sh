@@ -28,6 +28,7 @@ deepspeed run_mlm.py \
 --num_train_epochs 2 \
 --do_train \
 --do_eval \
+--evaluation_strategy epoch  \
 --output_dir ./test-bert-zero2-multigpu \
 --output_figure /tmp/test-mlm-deepspeed \
 --out_excel deepspeedMlmMatrix \
