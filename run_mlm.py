@@ -48,7 +48,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
     set_seed,
-    IntervalStrategy
+    IntervalStrategy, TrainerState, TrainerControl
 )
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
@@ -219,6 +219,10 @@ class SaveMetricsCallback(TrainerCallback):
     def on_train_batch_end(self, args, state, control, model=None, inputs=None, outputs=None, **kwargs):
         print(f'batchEnd:{outputs}')
         self.all_losses.append(outputs["loss"])  # Save the loss of each batch
+
+    def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
+        print(f'stepEnd:{TrainerState}')
+
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
         print(f'epochEndState:{state}')
