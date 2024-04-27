@@ -173,7 +173,7 @@ class DataTrainingArguments:
     out_pic: Optional[str] = field(default='tranLosAndAcc', metadata={"help": "Output Picture Filename"})
     valid_filename: Optional[str] = field(default='valLosAndAcc', metadata={"help": "Output valPic Filename"})
     test_filename: Optional[str] = field(default='testLosAndAcc', metadata={"help": "Output testPic Filename"})
-
+    evaluation_strategy = "epoch"
     def __post_init__(self):
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
             raise ValueError("Need either a dataset name or a training/validation file.")
@@ -510,7 +510,7 @@ def main():
         mlm_probability=data_args.mlm_probability,
         pad_to_multiple_of=8 if pad_to_multiple_of_8 else None,
     )
-
+    print(f'traningArgs:{training_args}')
     # Initialize our Trainer
     trainer = Trainer(
         model=model,
