@@ -206,7 +206,7 @@ class SaveMetricsCallback(TrainerCallback):
         print(f'epochEndState:{state}')
         print(f'epochEndEpoch {state.epoch} has ended.')
         print(f'epochEndlog_history {state.log_history} has ended.')
-        logs.perplexity = math.exp(logs["eval_loss"])
+        logs["perplexity"] = math.exp(logs["eval_loss"])
         self.metrics.append(logs)
         print(f'logEnd:{logs}')
 
