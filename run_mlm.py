@@ -222,6 +222,8 @@ class SaveMetricsCallback(TrainerCallback):
 
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         print(f'stepEnd:{state}')
+    def on_evaluate(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
+        print(f'evaluate:{state}')
 
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
