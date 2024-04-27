@@ -203,13 +203,12 @@ class SaveMetricsCallback(TrainerCallback):
 
 
     def on_log(self, args, state, control, logs=None, **kwargs):
-        print(f'logEnd:${logs}')
         print(f'epochEndState:{state}')
         print(f'epochEndEpoch {state.epoch} has ended.')
         print(f'epochEndlog_history {state.log_history} has ended.')
-        item= state.log_history[-1]
-        item.perplexity = math.exp(item["eval_loss"])
-        self.metrics.append(item)
+        logs.perplexity = math.exp(logs["eval_loss"])
+        self.metrics.append(logs)
+        print(f'logEnd:{logs}')
 
     def on_train_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         # Convert the metrics list of dictionaries to DataFrame
