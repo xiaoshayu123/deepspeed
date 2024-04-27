@@ -515,7 +515,7 @@ def main():
     # Initialize our Trainer
     trainer = Trainer(
         model=model,
-        args=training_args,
+        args=data_args,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
