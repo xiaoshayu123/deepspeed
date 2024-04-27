@@ -224,14 +224,15 @@ class SaveMetricsCallback(TrainerCallback):
 
         # Plot accuracy
         axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['perplexity'])
-        axs[0].set(xlabel='Epoch', ylabel='Accuracy', title='Accuracy over epochs')
+        axs[0].set(xlabel='Epoch', ylabel='perplexity', title='perplexity')
         axs[0].grid()
 
         # Plot loss
         axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
-        axs[1].set(xlabel='Epoch', ylabel='Loss', title='Loss over epochs')
+        axs[1].set(xlabel='Epoch', ylabel='Loss', title='Loss')
         axs[1].grid()
 
+        plt.subplots_adjust(hspace=0.4)
         # Save the figure
         fig.savefig(self.plot_filename)
 
