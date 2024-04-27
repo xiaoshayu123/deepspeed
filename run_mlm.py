@@ -221,7 +221,7 @@ class SaveMetricsCallback(TrainerCallback):
         self.all_losses.append(outputs["loss"])  # Save the loss of each batch
 
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        print(f'stepEnd:{TrainerState}')
+        print(f'stepEnd:{state}')
 
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
@@ -515,6 +515,7 @@ def main():
         eval_dataset = tokenized_datasets["validation"]
         if data_args.max_eval_samples is not None:
             eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
+        training_args.evaluation_strategy = "epoch"
 
     # Data collator
     # This one will take care of randomly masking the tokens.
