@@ -188,6 +188,7 @@ class DataTrainingArguments:
 class SaveMetricsCallback(TrainerCallback):
     def __init__(self, args, excel_filename, plot_filename, valid_filename, test_filename):
         self.metrics_dataframe = pd.DataFrame()
+        self.all_losses=[]
         # 检查目录是否存在，如果存在就删除
         if os.path.exists(args.output_figure):
             shutil.rmtree(args.output_figure)
@@ -200,8 +201,12 @@ class SaveMetricsCallback(TrainerCallback):
         self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
         self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
+    def on_train_batch_end(self, args, state, control, model=None, inputs=None, outputs=None, **kwargs):
+        print(f'batchEnd:{outputs}')
+        self.all_losses.append(outputs["loss"])  # Save the loss of each batch
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
+        print(f'epochEndState:{state}')
         # print(f'state:${state}')
         # perplexity = math.exp(logs["train_loss"])
         # print(f'Epoch: ${state.epoch}, Perplexity: ${perplexity} loss:${logs["train_loss"]}')
