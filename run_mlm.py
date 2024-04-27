@@ -176,7 +176,7 @@ class DataTrainingArguments:
                     "value if set."
         },
     )
-    save_strategy: Optional[str]= field(
+    save_strategy: Optional[str] = field(
         default=IntervalStrategy.EPOCH,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
@@ -203,17 +203,18 @@ class SaveMetricsCallback(TrainerCallback):
     def __init__(self, args, excel_filename, plot_filename, valid_filename, test_filename):
         self.metrics_dataframe = pd.DataFrame()
         self.all_losses=[]
+        print(f'训练参数{args}')
         # 检查目录是否存在，如果存在就删除
-        if os.path.exists(args.output_figure):
-            shutil.rmtree(args.output_figure)
-
-        # 重新创建同名目录
-        os.makedirs(args.output_figure)
-        print(f'保存的目录${args.output_figure}')
-        self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
-        self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
-        self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
-        self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
+        # if os.path.exists(args.output_figure):
+        #     shutil.rmtree(args.output_figure)
+        #
+        # # 重新创建同名目录
+        # os.makedirs(args.output_figure)
+        # print(f'保存的目录${args.output_figure}')
+        # self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
+        # self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
+        # self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
+        # self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
     def on_train_batch_end(self, args, state, control, model=None, inputs=None, outputs=None, **kwargs):
         print(f'batchEnd:{outputs}')
@@ -527,7 +528,7 @@ def main():
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        callbacks=[SaveMetricsCallback(data_args,data_args.out_excel, data_args.out_pic, data_args.valid_filename,
+        callbacks=[SaveMetricsCallback(training_args,data_args.out_excel, data_args.out_pic, data_args.valid_filename,
                                        data_args.test_filename)]
     )
 
