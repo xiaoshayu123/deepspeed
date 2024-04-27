@@ -48,6 +48,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
     set_seed,
+    IntervalStrategy
 )
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
@@ -173,8 +174,8 @@ class DataTrainingArguments:
     out_pic: Optional[str] = field(default='tranLosAndAcc', metadata={"help": "Output Picture Filename"})
     valid_filename: Optional[str] = field(default='valLosAndAcc', metadata={"help": "Output valPic Filename"})
     test_filename: Optional[str] = field(default='testLosAndAcc', metadata={"help": "Output testPic Filename"})
-    evaluation_strategy = "epoch"
-    save_strategy = "epoch"
+    evaluation_strategy = IntervalStrategy.EPOCH
+    save_strategy = IntervalStrategy.EPOCH
     def __post_init__(self):
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
             raise ValueError("Need either a dataset name or a training/validation file.")
@@ -208,20 +209,15 @@ class SaveMetricsCallback(TrainerCallback):
     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
         print(f'epochEndState:{state}')
+        print(f'epochEndEpoch {state.epoch} has ended.')
+        print(f'epochEndTraining Loss: {state.log_history[-1]['loss']}')
+        print(f'epochEndLearning Rate: {state.log_history[-1]['learning_rate']}')
         # print(f'state:${state}')
         # perplexity = math.exp(logs["train_loss"])
         # print(f'Epoch: ${state.epoch}, Perplexity: ${perplexity} loss:${logs["train_loss"]}')
         # 在每个epoch结束后，logs会包含loss和其他可能的指标
         # if state.epoch is not None:
-            # self.metrics_dataframe.append((state.epoch, logs))
 
-
-    def on_train_end(self, args, state, control, **kwargs):
-        print("训练结束")
-        print(f'excel文件保存地址：${self.excel_filename}')
-        print(f'plot文件保存地址：${self.plot_filename}')
-        print(f'valid文件保存地址：${self.valid_filename}')
-        print(f'test文件保存地址：${self.test_filename}')
 
         # self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
         #
