@@ -201,77 +201,61 @@ class DataTrainingArguments:
 
 class SaveMetricsCallback(TrainerCallback):
     def __init__(self, args, excel_filename, plot_filename, valid_filename, test_filename):
-        self.metrics_dataframe = pd.DataFrame()
-        self.all_losses=[]
+        self.metrics = []
         print(f'训练参数{args}')
         # 检查目录是否存在，如果存在就删除
-        # if os.path.exists(args.output_figure):
-        #     shutil.rmtree(args.output_figure)
-        #
-        # # 重新创建同名目录
-        # os.makedirs(args.output_figure)
-        # print(f'保存的目录${args.output_figure}')
-        # self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
-        # self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
-        # self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
-        # self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
+        if os.path.exists(args.output_figure):
+            shutil.rmtree(args.output_figure)
 
-    def on_train_batch_end(self, args, state, control, model=None, inputs=None, outputs=None, **kwargs):
-        print(f'batchEnd:{outputs}')
-        self.all_losses.append(outputs["loss"])  # Save the loss of each batch
+        # 重新创建同名目录
+        os.makedirs(args.output_figure)
+        print(f'保存的目录${args.output_figure}')
+        self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
+        self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
+        self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
+        self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
-    def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        print(f'stepEnd:{state}')
-    def on_evaluate(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        print(f'evaluate:{state}')
 
-    def on_epoch_end(self, args, state, control, logs=None, **kwargs):
+    def on_log(self, args, state, control, logs=None, **kwargs):
         print(f'logEnd:${logs}')
         print(f'epochEndState:{state}')
         print(f'epochEndEpoch {state.epoch} has ended.')
         print(f'epochEndlog_history {state.log_history} has ended.')
-        # print(f'state:${state}')
-        # perplexity = math.exp(logs["train_loss"])
-        # print(f'Epoch: ${state.epoch}, Perplexity: ${perplexity} loss:${logs["train_loss"]}')
-        # 在每个epoch结束后，logs会包含loss和其他可能的指标
-        # if state.epoch is not None:
+        item= state.log_history[-1]
+        item.perplexity = math.exp(item["eval_loss"])
+        self.metrics.append(item)
+
+    def on_train_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
+        # Convert the metrics list of dictionaries to DataFrame
+        self.metrics_dataframe = pd.DataFrame(self.metrics)
+
+        # Save the DataFrame to an Excel file
+        self.metrics_dataframe.to_excel(self.excel_filename, engine='xlsxwriter')
+
+        fig, axs = plt.subplots(2)
+        print("输出指标")
+        print(self.metrics_dataframe)
+
+        # Plot accuracy
+        axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['perplexity'])
+        axs[0].set(xlabel='Epoch', ylabel='Accuracy', title='Accuracy over epochs')
+        axs[0].grid()
+
+        # Plot loss
+        axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
+        axs[1].set(xlabel='Epoch', ylabel='Loss', title='Loss over epochs')
+        axs[1].grid()
+
+        # Save the figure
+        fig.savefig(self.plot_filename)
 
 
-        # self.metrics_dataframe.to_excel(self.excel_filename,engine='xlsxwriter')
-        #
-        # fig, axs = plt.subplots(2)
-        # print("输出指标")
-        # print(self.metrics_dataframe)
-        # # Plot accuracy
-        # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_accuracy'])
-        # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-        #        title='Accuracy over epochs')
-        # axs[0].grid()
-        #
-        # # Plot loss
-        # axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
-        # axs[1].set(xlabel='Epoch', ylabel='Loss',
-        #        title='Loss over epochs')
-        # axs[1].grid()
-        #
-        # # Save the figure
-        # fig.savefig(self.plot_filename)
-        #
-        # # Plot validation accuracy
-        # fig, axs = plt.subplots(2)
-        # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['valid_accuracy'])
-        # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-        #            title='Validation Accuracy over epochs')
-        # axs[0].grid()
-        # fig.savefig(self.valid_filename)
-        #
-        # # Plot test accuracy
-        # fig, axs = plt.subplots(2)
-        # axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['test_accuracy'])
-        # axs[0].set(xlabel='Epoch', ylabel='Accuracy',
-        #            title='Test Accuracy over epochs')
-        # axs[0].grid()
-        # fig.savefig(self.test_filename)
+
+
+
+
+
+
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
