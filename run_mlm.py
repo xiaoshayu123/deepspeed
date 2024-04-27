@@ -169,13 +169,25 @@ class DataTrainingArguments:
             "value if set."
         },
     )
+    evaluation_strategy: Optional[str] = field(
+        default=IntervalStrategy.EPOCH,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
+                    "value if set."
+        },
+    )
+    save_strategy: Optional[str]= field(
+        default=IntervalStrategy.EPOCH,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
+                    "value if set."
+        },
+    )
     output_figure: Optional[str] = field(default='/tmp/test-mlm-pic', metadata={"help": "Output Figure Path"})
     out_excel: Optional[str] = field(default='mlmMatrix', metadata={"help": "Output Excel Filename"})
     out_pic: Optional[str] = field(default='tranLosAndAcc', metadata={"help": "Output Picture Filename"})
     valid_filename: Optional[str] = field(default='valLosAndAcc', metadata={"help": "Output valPic Filename"})
     test_filename: Optional[str] = field(default='testLosAndAcc', metadata={"help": "Output testPic Filename"})
-    evaluation_strategy = IntervalStrategy.EPOCH
-    save_strategy = IntervalStrategy.EPOCH
     def __post_init__(self):
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
             raise ValueError("Need either a dataset name or a training/validation file.")
@@ -506,9 +518,7 @@ def main():
         mlm_probability=data_args.mlm_probability,
         pad_to_multiple_of=8 if pad_to_multiple_of_8 else None,
     )
-    training_args.evaluation_strategy = IntervalStrategy.EPOCH
-    training_args.save_strategy = IntervalStrategy.EPOCH
-    print(f'traningArgs:{training_args}')
+    print(f'training_args是:{training_args}m\n\n\n\n')
     # Initialize our Trainer
     trainer = Trainer(
         model=model,
