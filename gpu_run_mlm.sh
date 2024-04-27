@@ -30,7 +30,7 @@ deepspeed run_mlm.py \
 --do_eval \
 --evaluation_strategy epoch  \
 --output_dir ./test-bert-zero2-multigpu \
---output_figure /tmp/test-mlm-deepspeed \
+--output_figure ./tmp/test-mlm-deepspeed \
 --out_excel deepspeedMlmMatrix \
 --out_pic deepspeedTranLosAndAcc \
 --valid_filename deepspeedValLosAndAcc \
