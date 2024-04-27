@@ -506,6 +506,8 @@ def main():
         mlm_probability=data_args.mlm_probability,
         pad_to_multiple_of=8 if pad_to_multiple_of_8 else None,
     )
+    training_args.evaluation_strategy = IntervalStrategy.EPOCH
+    training_args.save_strategy = IntervalStrategy.EPOCH
     print(f'traningArgs:{training_args}')
     # Initialize our Trainer
     trainer = Trainer(
