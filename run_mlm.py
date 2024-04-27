@@ -169,20 +169,6 @@ class DataTrainingArguments:
             "value if set."
         },
     )
-    # evaluation_strategy: Optional[str] = field(
-    #     default=IntervalStrategy.EPOCH,
-    #     metadata={
-    #         "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
-    #                 "value if set."
-    #     },
-    # )
-    # save_strategy: Optional[str] = field(
-    #     default=IntervalStrategy.EPOCH,
-    #     metadata={
-    #         "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
-    #                 "value if set."
-    #     },
-    # )
     output_figure: Optional[str] = field(default='/tmp/test-mlm-pic', metadata={"help": "Output Figure Path"})
     out_excel: Optional[str] = field(default='mlmMatrix', metadata={"help": "Output Excel Filename"})
     out_pic: Optional[str] = field(default='tranLosAndAcc', metadata={"help": "Output Picture Filename"})
