@@ -232,7 +232,7 @@ class SaveMetricsCallback(TrainerCallback):
         axs[1].set(xlabel='Epoch', ylabel='Loss', title='Loss')
         axs[1].grid()
 
-        plt.subplots_adjust(hspace=0.4)
+        plt.subplots_adjust(hspace=0.5)
         # Save the figure
         fig.savefig(self.plot_filename)
 
