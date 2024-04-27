@@ -1,25 +1,3 @@
-#!/usr/bin/env python
-# coding=utf-8
-# Copyright 2020 The HuggingFace Team All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""
-Fine-tuning the library models for masked language modeling (BERT, ALBERT, RoBERTa...) on a text file or a dataset.
-
-Here is the full list of checkpoints on the hub that can be fine-tuned by this script:
-https://huggingface.co/models?filter=masked-lm
-"""
-# You can also adapt this script on your own masked language modeling task. Pointers for this are left as comments.
 
 import logging
 import math
@@ -33,7 +11,6 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
 from typing import Optional
 from sklearn.metrics import accuracy_score
-
 
 from datasets import load_dataset
 import transformers
@@ -50,229 +27,201 @@ from transformers import (
     set_seed,
     IntervalStrategy, TrainerState, TrainerControl
 )
+# 类和函数的映射关系
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 from transformers import TrainerCallback
-# Will error if the minimal version of Transformers is not installed. Remove at your own risks.
+
 check_min_version("4.7.0.dev0")
 logger = logging.getLogger(__name__)
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_MASKED_LM_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
 
 
+# 数据类，用于存储模型相关参数
 @dataclass
 class ModelArguments:
-    """
-    Arguments pertaining to which model/config/tokenizer we are going to fine-tune, or train from scratch.
-    """
-
     model_name_or_path: Optional[str] = field(
         default=None,
         metadata={
-            "help": "The model checkpoint for weights initialization."
-            "Don't set if you want to train a model from scratch."
+            "help": "模型权重初始化的 checkpoint。"
+                    "如果要从头开始训练模型，请不要设置此选项。"
         },
     )
     model_type: Optional[str] = field(
         default=None,
-        metadata={"help": "If training from scratch, pass a model type from the list: " + ", ".join(MODEL_TYPES)},
+        metadata={"help": "如果从头开始训练，从列表中选择一个模型类型：" + ", ".join(MODEL_TYPES)},
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None, metadata={"help": "预训练配置名称或路径，如果与 model_name 不同的话"}
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None, metadata={"help": "预训练的 tokenizer 名称或路径，如果与 model_name 不同的话"}
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where do you want to store the pretrained models downloaded from huggingface.co"},
+        metadata={"help": "您希望把从 huggingface.co 下载的预训练模型存储在哪里"},
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+        metadata={"help": "是否使用 fast tokenizer（由 tokenizers 库支持）"},
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+        metadata={"help": "要使用的特定模型版本（可以是分支名称，标签名称或提交 id）"},
     )
     use_auth_token: bool = field(
         default=False,
         metadata={
-            "help": "Will use the token generated when running `transformers-cli login` (necessary to use this script "
-            "with private models)."
+            "help": "是否使用通过运行 `transformers-cli login` 生成的 token（如果要使用此脚本处理私有模型，则必需）"
         },
     )
 
 
+# 数据类，用于存储训练和评估的数据相关参数
 @dataclass
 class DataTrainingArguments:
-    """
-    Arguments pertaining to what data we are going to input our model for training and eval.
-    """
-
     dataset_name: Optional[str] = field(
-        default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
+        default=None, metadata={"help": "通过 datasets 库使用的数据集名称"}
     )
     dataset_config_name: Optional[str] = field(
-        default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+        default=None, metadata={"help": "通过 datasets 库使用的数据集配置名称"}
     )
-    train_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
+    train_file: Optional[str] = field(default=None, metadata={"help": "输入训练数据文件（文本文件）"})
     validation_file: Optional[str] = field(
         default=None,
-        metadata={"help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."},
+        metadata={"help": "用于评估 perplexity 的可选输入评估数据文件（文本文件）"},
     )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+        default=False, metadata={"help": "是否覆盖缓存的训练和评估集"}
     )
     validation_split_percentage: Optional[int] = field(
         default=5,
         metadata={
-            "help": "The percentage of the train set used as validation set in case there's no validation split"
+            "help": "如果没有验证分割，用作验证集的训练集的百分比"
         },
     )
     max_seq_length: Optional[int] = field(
         default=None,
         metadata={
-            "help": "The maximum total input sequence length after tokenization. Sequences longer "
-            "than this will be truncated."
+            "help": "tokenization 后的最大总输入序列长度。比这个长的序列将被截断。"
         },
     )
     preprocessing_num_workers: Optional[int] = field(
         default=None,
-        metadata={"help": "The number of processes to use for the preprocessing."},
+        metadata={"help": "用于预处理的进程数"},
     )
     mlm_probability: float = field(
-        default=0.15, metadata={"help": "Ratio of tokens to mask for masked language modeling loss"}
+        default=0.15, metadata={"help": "用于 masked language modeling loss 的 token 的掩码比例"}
     )
     line_by_line: bool = field(
         default=False,
-        metadata={"help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."},
+        metadata={"help": "数据集中的不同文本行是否应作为不同的序列处理"},
     )
     pad_to_max_length: bool = field(
         default=False,
         metadata={
-            "help": "Whether to pad all samples to `max_seq_length`. "
-            "If False, will pad the samples dynamically when batching to the maximum length in the batch."
+            "help": "是否将所有样本填充到 `max_seq_length`。 "
+                    "如果为 False，将在批次中动态填充样本到最大长度。"
         },
     )
     max_train_samples: Optional[int] = field(
         default=None,
         metadata={
-            "help": "For debugging purposes or quicker training, truncate the number of training examples to this "
-            "value if set."
+            "help": "用于调试或更快训练，如果设置此值，将训练样本数量截断为此值"
         },
     )
     max_eval_samples: Optional[int] = field(
         default=None,
         metadata={
-            "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
-            "value if set."
+            "help": "用于调试或更快训练，如果设置此值，将评估样本数量截断为此值"
         },
     )
-    output_figure: Optional[str] = field(default='/tmp/test-mlm-pic', metadata={"help": "Output Figure Path"})
-    out_excel: Optional[str] = field(default='mlmMatrix', metadata={"help": "Output Excel Filename"})
-    out_pic: Optional[str] = field(default='tranLosAndAcc', metadata={"help": "Output Picture Filename"})
-    valid_filename: Optional[str] = field(default='valLosAndAcc', metadata={"help": "Output valPic Filename"})
-    test_filename: Optional[str] = field(default='testLosAndAcc', metadata={"help": "Output testPic Filename"})
+    output_figure: Optional[str] = field(default='/tmp/test-mlm-pic', metadata={"help": "输出图形路径"})
+    out_excel: Optional[str] = field(default='mlmMatrix', metadata={"help": "输出 Excel 文件名"})
+    out_pic: Optional[str] = field(default='tranLosAndAcc', metadata={"help": "输出图片文件名"})
+
     def __post_init__(self):
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
-            raise ValueError("Need either a dataset name or a training/validation file.")
+            raise ValueError("需要数据集名称或训练/验证文件。")
         else:
             if self.train_file is not None:
                 extension = self.train_file.split(".")[-1]
-                assert extension in ["csv", "json", "txt"], "`train_file` should be a csv, a json or a txt file."
+                assert extension in ["csv", "json", "txt"], "`train_file` 应为 csv、json 或 txt 文件。"
             if self.validation_file is not None:
                 extension = self.validation_file.split(".")[-1]
-                assert extension in ["csv", "json", "txt"], "`validation_file` should be a csv, a json or a txt file."
+                assert extension in ["csv", "json", "txt"], "`validation_file` 应为 csv、json 或 txt 文件。"
 
+
+# 用于保存训练过程中的度量指标
 class SaveMetricsCallback(TrainerCallback):
-    def __init__(self, args, excel_filename, plot_filename, valid_filename, test_filename):
+    def __init__(self, args, excel_filename, plot_filename):
         self.metrics = []
-        print(f'训练参数{args}')
-        # 检查目录是否存在，如果存在就删除
         if os.path.exists(args.output_figure):
             shutil.rmtree(args.output_figure)
-
-        # 重新创建同名目录
         os.makedirs(args.output_figure)
-        print(f'保存的目录${args.output_figure}')
         self.excel_filename = os.path.join(args.output_figure, excel_filename + '.xlsx')
         self.plot_filename = os.path.join(args.output_figure, plot_filename + '.png')
-        self.valid_filename = os.path.join(args.output_figure, valid_filename + '.png')
-        self.test_filename = os.path.join(args.output_figure, test_filename + '.png')
 
-
+    # 在评估结束后执行
     def on_evaluate(self, args, state, control, logs=None, **kwargs):
-        print(f'epochEndState:{state}')
-        print(f'epochEndEpoch {state.epoch} has ended.')
-        print(f'epochEndlog_history {state.log_history} has ended.')
-        item=state.log_history[-1]
+        item = state.log_history[-1]
         item["perplexity"] = math.exp(item["eval_loss"])
         self.metrics.append(item)
-        print(f'logEnd:{item}')
 
+    # 在训练结束后执行
     def on_train_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        # Convert the metrics list of dictionaries to DataFrame
+        # 将度量指标的字典列表转为 DataFrame
         self.metrics_dataframe = pd.DataFrame(self.metrics)
-
-        # Save the DataFrame to an Excel file
+        # 将 DataFrame 保存为 Excel 文件
         self.metrics_dataframe.to_excel(self.excel_filename, engine='xlsxwriter')
 
         fig, axs = plt.subplots(2)
-        print("输出指标")
-        print(self.metrics_dataframe)
 
-        # Plot accuracy
+        # 画图：准确率
         axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['perplexity'])
         axs[0].set(xlabel='Epoch', ylabel='perplexity', title='perplexity')
         axs[0].grid()
 
-        # Plot loss
+        # 画图：损失
         axs[1].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['eval_loss'])
         axs[1].set(xlabel='Epoch', ylabel='Loss', title='Loss')
         axs[1].grid()
 
         plt.subplots_adjust(hspace=0.5)
-        # Save the figure
+        # 保存图形
         fig.savefig(self.plot_filename)
 
 
-
-
-
-
-
-
 def main():
-    # See all possible arguments in src/transformers/training_args.py
-    # or by passing the --help flag to this script.
-    # We now keep distinct sets of args, for a cleaner separation of concerns.
+    # 查看src/transformers/training_args.py中所有可能的参数
+    # 或者通过传递--help标志给这个脚本。
+    # 我们现在保持参数的不同集合，为了更清晰地分离任务。
 
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
-        # If we pass only one argument to the script and it's the path to a json file,
-        # let's parse it to get our arguments.
+        # 如果我们仅为脚本传递一个参数且它是json文件的路径，
+        # 我们将解析它以获取参数
         model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-    print(f'training_args:{training_args}')
-    print(f'data_args:{data_args}')
-    # Detecting last checkpoint.
+    # 检测最后一个检查点
     last_checkpoint = None
     if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+        # 如果是训练模式且不覆盖输出目录，则检查此目录是否存在上一次的检查点
         last_checkpoint = get_last_checkpoint(training_args.output_dir)
         if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
             raise ValueError(
-                f"Output directory ({training_args.output_dir}) already exists and is not empty. "
-                "Use --overwrite_output_dir to overcome."
+                f"输出目录 ({training_args.output_dir}) 已存在且非空. "
+                "使用 --overwrite_output_dir 来覆盖."
             )
         elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
             logger.info(
-                f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
-                "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
+                f"检测到检查点，从 {last_checkpoint} 继续训练. 为了避免这个行为，改变"
+                "参数 `--output_dir` 或者 添加 `--overwrite_output_dir` 从零开始训练."
             )
 
-    # Setup logging
+    # 设置日志
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
@@ -280,38 +229,38 @@ def main():
     )
     logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
 
-    # Log on each process the small summary:
+    # 在每个进程上记录小结:
     logger.warning(
-        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
-        + f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
+        f"进程排名: {training_args.local_rank}, 设备: {training_args.device}, n_gpu: {training_args.n_gpu}"
+        + f"分布式训练: {bool(training_args.local_rank != -1)}, 16-bits 训练: {training_args.fp16}"
     )
-    # Set the verbosity to info of the Transformers logger (on main process only):
+    # 设置Transformers logger的详细程度为info(只在主进程上):
     if is_main_process(training_args.local_rank):
         transformers.utils.logging.set_verbosity_info()
         transformers.utils.logging.enable_default_handler()
         transformers.utils.logging.enable_explicit_format()
-    logger.info(f"Training/evaluation parameters {training_args}")
+    logger.info(f"训练/评估参数 {training_args}")
 
-    # Set seed before initializing model.
+    # 在初始化模型之前设定种子
     set_seed(training_args.seed)
 
-    # Get the datasets: you can either provide your own CSV/JSON/TXT training and evaluation files (see below)
-    # or just provide the name of one of the public datasets available on the hub at https://huggingface.co/datasets/
-    # (the dataset will be downloaded automatically from the datasets Hub
+    # 获取数据集：您可以提供您自己的CSV/JSON/TXT训练和评估文件(见下文)
+    # 或者只是提供一个公共数据集的名字，该公共数据集在 https://huggingface.co/datasets/ 上可用
+    # (数据集将从数据集Hub自动下载
     #
-    # For CSV/JSON files, this script will use the column called 'text' or the first column. You can easily tweak this
-    # behavior (see below)
+    # 对于CSV/JSON文件，此脚本将使用名为'text'的列或第一列。你可以简单地调整这个
+    # 行为 (见下文)
     #
-    # In distributed training, the load_dataset function guarantee that only one local process can concurrently
-    # download the dataset.
+    # 在分布式训练中，load_dataset函数保证只有一个本地进程可以并发
+    # 下载数据集。
     if data_args.dataset_name is not None:
-        # Downloading and loading a dataset from the hub.
+        # 从hub下载并加载一个数据集。
         datasets = load_dataset(data_args.dataset_name, data_args.dataset_config_name, cache_dir=model_args.cache_dir)
         if "validation" not in datasets.keys():
             datasets["validation"] = load_dataset(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
-                split=f"train[:{data_args.validation_split_percentage}%]",
+                split=f"train[:{data_args.validation_split_percentage}%",
                 cache_dir=model_args.cache_dir,
             )
             datasets["train"] = load_dataset(
@@ -330,14 +279,14 @@ def main():
         if extension == "txt":
             extension = "text"
         datasets = load_dataset(extension, data_files=data_files, cache_dir=model_args.cache_dir)
-    # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
-    # https://huggingface.co/docs/datasets/loading_datasets.html.
+    # 有关加载任何类型的标准或自定义数据集(从文件、python dict、pandas DataFrame等)的更多信息，请参阅
+    # https://huggingface.co/docs/datasets/loading_datasets.html。
 
-    # Load pretrained model and tokenizer
+    # 加载预训练模型和分词器
     #
-    # Distributed training:
-    # The .from_pretrained methods guarantee that only one local process can concurrently
-    # download model & vocab.
+    # 分布式训练：
+    # .from_pretrained方法保证只有一个本地进程可以并发
+    # 下载模型和词汇表。
     config_kwargs = {
         "cache_dir": model_args.cache_dir,
         "revision": model_args.model_revision,
@@ -349,7 +298,7 @@ def main():
         config = AutoConfig.from_pretrained(model_args.model_name_or_path, **config_kwargs)
     else:
         config = CONFIG_MAPPING[model_args.model_type]()
-        logger.warning("You are instantiating a new config instance from scratch.")
+        logger.warning("你正在从头构建一个新的config实例.")
 
     tokenizer_kwargs = {
         "cache_dir": model_args.cache_dir,
@@ -363,8 +312,8 @@ def main():
         tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, **tokenizer_kwargs)
     else:
         raise ValueError(
-            "You are instantiating a new tokenizer from scratch. This is not supported by this script."
-            "You can do it from another script, save it, and load it from here, using --tokenizer_name."
+            "你正在从头开始实例化一个新的分词器. 这个脚本不支持这个行为. "
+            "你可以从另一个脚本做这个，保存它，然后从这里加载它，使用 --tokenizer_name."
         )
 
     if model_args.model_name_or_path:
@@ -377,13 +326,13 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
         )
     else:
-        logger.info("Training new model from scratch")
+        logger.info("从头开始训练新模型")
         model = AutoModelForMaskedLM.from_config(config)
 
     model.resize_token_embeddings(len(tokenizer))
 
-    # Preprocessing the datasets.
-    # First we tokenize all the texts.
+    # 预处理数据集。
+    # 首先我们对所有文本进行分词。
     if training_args.do_train:
         column_names = datasets["train"].column_names
     else:
@@ -394,32 +343,32 @@ def main():
         max_seq_length = tokenizer.model_max_length
         if max_seq_length > 1024:
             logger.warning(
-                f"The tokenizer picked seems to have a very large `model_max_length` ({tokenizer.model_max_length}). "
-                "Picking 1024 instead. You can change that default value by passing --max_seq_length xxx."
+                f"选取的分词器似乎有一个很大的 `model_max_length` ({tokenizer.model_max_length})."
+                "选择1024作为最大长度. 你可以通过 --max_seq_length xxx来更改此默认值."
             )
             max_seq_length = 1024
     else:
         if data_args.max_seq_length > tokenizer.model_max_length:
             logger.warning(
-                f"The max_seq_length passed ({data_args.max_seq_length}) is larger than the maximum length for the"
-                f"model ({tokenizer.model_max_length}). Using max_seq_length={tokenizer.model_max_length}."
+                f"传递的 max_seq_length ({data_args.max_seq_length}) 大于"
+                f"模型的最大长度 ({tokenizer.model_max_length}). 使用 max_seq_length={tokenizer.model_max_length}."
             )
         max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
 
+    # 如果按行处理，则我们只对每个非空行进行分词。
     if data_args.line_by_line:
-        # When using line_by_line, we just tokenize each nonempty line.
         padding = "max_length" if data_args.pad_to_max_length else False
 
         def tokenize_function(examples):
-            # Remove empty lines
+            # 移除空行
             examples["text"] = [line for line in examples["text"] if len(line) > 0 and not line.isspace()]
             return tokenizer(
                 examples["text"],
                 padding=padding,
                 truncation=True,
                 max_length=max_seq_length,
-                # We use this option because DataCollatorForLanguageModeling (see below) is more efficient when it
-                # receives the `special_tokens_mask`.
+                # 我们使用此选项是因为DataCollatorForLanguageModeling（见下文）在接收
+                # `special_tokens_mask`时效率更高。
                 return_special_tokens_mask=True,
             )
 
@@ -431,9 +380,9 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
         )
     else:
-        # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
-        # We use `return_special_tokens_mask=True` because DataCollatorForLanguageModeling (see below) is more
-        # efficient when it receives the `special_tokens_mask`.
+        # 否则，我们将对每个文本进行分词，然后在分割成更小的部分之前将它们连接在一起。
+        # 我们使用`return_special_tokens_mask=True`，因为DataCollatorForLanguageModeling（见下文）更善于处理
+        # `special_tokens_mask`。
         def tokenize_function(examples):
             return tokenizer(examples[text_column_name], return_special_tokens_mask=True)
 
@@ -445,27 +394,26 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
         )
 
-        # Main data processing function that will concatenate all texts from our dataset and generate chunks of
-        # max_seq_length.
+        # 主要的数据处理函数，将把我们的数据集中的所有文本连接在一起并生成最大序列长度的块。
         def group_texts(examples):
-            # Concatenate all texts.
+            # 连接所有文本。
             concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
             total_length = len(concatenated_examples[list(examples.keys())[0]])
-            # We drop the small remainder, we could add padding if the model supported it instead of this drop, you can
-            # customize this part to your needs.
+            # 我们丢掉小的余数，我们可以在模型支持的情况下添加填充，而不是丢掉，你可以
+            # 根据你的需求自定义这部分。
             total_length = (total_length // max_seq_length) * max_seq_length
-            # Split by chunks of max_len.
+            # 以max_len的块进行分割。
             result = {
-                k: [t[i : i + max_seq_length] for i in range(0, total_length, max_seq_length)]
+                k: [t[i: i + max_seq_length] for i in range(0, total_length, max_seq_length)]
                 for k, t in concatenated_examples.items()
             }
             return result
 
-        # Note that with `batched=True`, this map processes 1,000 texts together, so group_texts throws away a
-        # remainder for each of those groups of 1,000 texts. You can adjust that batch_size here but a higher value
-        # might be slower to preprocess.
+        # 注意，使用`batched=True`，这个map处理1000个文本一起，所以group_texts为
+        # 这些1000个文本的组丢掉一个余数。你可以在这里调整batch_size，但是一个更大的值
+        # 可能会导致预处理速度变慢。
         #
-        # To speed up this part, we use multiprocessing. See the documentation of the map method for more information:
+        # 为了加速这部分，我们使用多进程。查看map方法的更多信息：
         # https://huggingface.co/docs/datasets/package_reference/main_classes.html#datasets.Dataset.map
 
         tokenized_datasets = tokenized_datasets.map(
@@ -477,29 +425,28 @@ def main():
 
     if training_args.do_train:
         if "train" not in tokenized_datasets:
-            raise ValueError("--do_train requires a train dataset")
+            raise ValueError("--do_train 选项需要一个训练数据集")
         train_dataset = tokenized_datasets["train"]
         if data_args.max_train_samples is not None:
             train_dataset = train_dataset.select(range(data_args.max_train_samples))
 
     if training_args.do_eval:
         if "validation" not in tokenized_datasets:
-            raise ValueError("--do_eval requires a validation dataset")
+            raise ValueError("--do_eval 选项需要一个验证数据集")
         eval_dataset = tokenized_datasets["validation"]
         if data_args.max_eval_samples is not None:
             eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
         training_args.evaluation_strategy = "epoch"
 
-    # Data collator
-    # This one will take care of randomly masking the tokens.
+    # 数据整合器
+    # 这个将处理随机遮盖tokens的任务。
     pad_to_multiple_of_8 = data_args.line_by_line and training_args.fp16 and not data_args.pad_to_max_length
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
         mlm_probability=data_args.mlm_probability,
         pad_to_multiple_of=8 if pad_to_multiple_of_8 else None,
     )
-    print(f'training_args是:{training_args}m\n\n\n\n')
-    # Initialize our Trainer
+    # 初始化训练器
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -507,11 +454,10 @@ def main():
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        callbacks=[SaveMetricsCallback(data_args,data_args.out_excel, data_args.out_pic, data_args.valid_filename,
-                                       data_args.test_filename)]
+        callbacks=[SaveMetricsCallback(data_args, data_args.out_excel, data_args.out_pic)]
     )
 
-    # Training
+    # 训练
     if training_args.do_train:
         checkpoint = None
         if training_args.resume_from_checkpoint is not None:
@@ -519,9 +465,8 @@ def main():
         elif last_checkpoint is not None:
             checkpoint = last_checkpoint
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
-        trainer.save_model()  # Saves the tokenizer too for easy upload
+        trainer.save_model()  # 保存分词器，方便上传
         metrics = train_result.metrics
-        print(f'测试集参数${metrics}')
         max_train_samples = (
             data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
         )
@@ -532,12 +477,11 @@ def main():
         trainer.save_metrics("train", metrics)
         trainer.save_state()
 
-    # Evaluation
+    # 评估
     if training_args.do_eval:
-        logger.info("*** Evaluate ***")
+        logger.info("*** 进行评估 ***")
 
         metrics = trainer.evaluate()
-        print(f'验证集参数${metrics}')
         max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
         metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
         perplexity = math.exp(metrics["eval_loss"])
@@ -546,6 +490,7 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
+    # 将模型推到hub
     if training_args.push_to_hub:
         kwargs = {"finetuned_from": model_args.model_name_or_path, "tags": "fill-mask"}
         if data_args.dataset_name is not None:
@@ -559,9 +504,6 @@ def main():
         trainer.push_to_hub(**kwargs)
 
 
-def _mp_fn(index):
-    # For xla_spawn (TPUs)
-    main()
 
 
 if __name__ == "__main__":
