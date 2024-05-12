@@ -172,7 +172,7 @@ class SaveMetricsCallback(TrainerCallback):
     def on_evaluate(self, args, state, control, logs=None, **kwargs):
         item = state.log_history[-1]
         item["perplexity"] = math.exp(item["eval_loss"])
-        item["accuracy"] = logs["accuracy"]  # 获取精确度
+        # item["accuracy"] = logs["accuracy"]  # 获取精确度
         self.metrics.append(item)
 
     # 在训练结束后执行
@@ -197,9 +197,9 @@ class SaveMetricsCallback(TrainerCallback):
         plt.subplots_adjust(hspace=0.5)
 
         # 画图：准确率
-        axs[2].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['accuracy'])
-        axs[2].set(xlabel='Epoch', ylabel='Accuracy', title='Accuracy')
-        axs[2].grid()
+        # axs[2].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['accuracy'])
+        # axs[2].set(xlabel='Epoch', ylabel='Accuracy', title='Accuracy')
+        # axs[2].grid()
         # 保存图形
         fig.savefig(self.plot_filename)
 
