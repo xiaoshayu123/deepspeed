@@ -7,7 +7,7 @@ deepspeed run_mlm.py \
 --model_name_or_path roberta-base \
     --dataset_name wikitext \
     --dataset_config_name wikitext-2-raw-v1 \
---num_train_epochs 20 \
+--num_train_epochs 2 \
 --do_train \
 --do_eval \
 --evaluation_strategy epoch  \
