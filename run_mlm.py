@@ -458,6 +458,7 @@ def main():
         pad_to_multiple_of=8 if pad_to_multiple_of_8 else None,
     )
     # 初始化训练器
+    training_args.per_device_train_batch_size = 32
     trainer = Trainer(
         model=model,
         args=training_args,
