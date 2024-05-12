@@ -39,6 +39,11 @@ MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
 
 
 # 数据类，用于存储模型相关参数
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    accuracy = (predictions == labels).astype(np.float32).mean().item()
+    return {"accuracy": accuracy}
 @dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(
@@ -167,6 +172,7 @@ class SaveMetricsCallback(TrainerCallback):
     def on_evaluate(self, args, state, control, logs=None, **kwargs):
         item = state.log_history[-1]
         item["perplexity"] = math.exp(item["eval_loss"])
+        item["accuracy"] = logs["accuracy"]  # 获取精确度
         self.metrics.append(item)
 
     # 在训练结束后执行
@@ -178,7 +184,7 @@ class SaveMetricsCallback(TrainerCallback):
 
         fig, axs = plt.subplots(2)
 
-        # 画图：准确率
+        # 画图：混淆度
         axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['perplexity'])
         axs[0].set(xlabel='Epoch', ylabel='perplexity', title='perplexity')
         axs[0].grid()
@@ -189,6 +195,11 @@ class SaveMetricsCallback(TrainerCallback):
         axs[1].grid()
 
         plt.subplots_adjust(hspace=0.5)
+
+        # 画图：准确率
+        axs[2].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['accuracy'])
+        axs[2].set(xlabel='Epoch', ylabel='Accuracy', title='Accuracy')
+        axs[2].grid()
         # 保存图形
         fig.savefig(self.plot_filename)
 
@@ -450,6 +461,7 @@ def main():
     trainer = Trainer(
         model=model,
         args=training_args,
+        compute_metrics=compute_metrics,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
