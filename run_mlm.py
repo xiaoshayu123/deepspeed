@@ -170,6 +170,7 @@ class SaveMetricsCallback(TrainerCallback):
 
     # 在评估结束后执行
     def on_evaluate(self, args, state, control, logs=None, **kwargs):
+        print("Evaluating" , logs)
         item = state.log_history[-1]
         item["perplexity"] = math.exp(item["eval_loss"])
         item["accuracy"] = logs["eval_accuracy"]  # 获取精确度
