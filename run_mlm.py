@@ -464,6 +464,7 @@ def main():
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
+        compute_metrics=compute_metrics,
         tokenizer=tokenizer,
         data_collator=data_collator,
         callbacks=[SaveMetricsCallback(data_args, data_args.out_excel, data_args.out_pic)]
