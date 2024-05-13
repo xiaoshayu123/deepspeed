@@ -183,7 +183,7 @@ class SaveMetricsCallback(TrainerCallback):
         # 将 DataFrame 保存为 Excel 文件
         self.metrics_dataframe.to_excel(self.excel_filename, engine='xlsxwriter')
 
-        fig, axs = plt.subplots(2)
+        fig, axs = plt.subplots(3)
 
         # 画图：混淆度
         axs[0].plot(self.metrics_dataframe['epoch'], self.metrics_dataframe['perplexity'])
