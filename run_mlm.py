@@ -459,6 +459,7 @@ def main():
     )
     # 初始化训练器
     training_args.per_device_train_batch_size = 4
+    training_args.gradient_accumulation_steps = 2
     trainer = Trainer(
         model=model,
         args=training_args,
