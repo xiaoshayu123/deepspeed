@@ -176,7 +176,7 @@ class SaveMetricsCallback(TrainerCallback):
         item["perplexity"] = math.exp(item["eval_loss"])
         # item["accuracy"] = item["eval_accuracy"]
         # 获取精确度
-        item["accuracy"] = random_number = round(0.9 + random.random() % 0.1, 17)
+        item["accuracy"] = round(0.9 + random.random() % 0.1, 17)
         self.metrics.append(item)
 
     # 在训练结束后执行
