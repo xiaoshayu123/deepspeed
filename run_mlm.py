@@ -174,7 +174,8 @@ class SaveMetricsCallback(TrainerCallback):
         print("Evaluating" , logs)
         item = state.log_history[-1]
         item["perplexity"] = math.exp(item["eval_loss"])
-        # item["accuracy"] = item["eval_accuracy"]  # 获取精确度
+        # item["accuracy"] = item["eval_accuracy"]
+        # 获取精确度
         item["accuracy"] = random_number = round(0.9 + random.random() % 0.1, 17)
         self.metrics.append(item)
 
